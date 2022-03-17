@@ -51,96 +51,12 @@ else()
 endif()
 
 
-# Move LandmarkDetector model
-file(GLOB files "lib/local/LandmarkDetector/model/*.txt")
-foreach(file ${files})
-	file(COPY ${file} DESTINATION ${CMAKE_BINARY_DIR}/bin/model)
-	install(FILES ${file} DESTINATION ${CMAKE_CONFIG_DIR}/model)
-endforeach()
-
-# Move the hierarchical LandmarkDetector models
-file(GLOB files "lib/local/LandmarkDetector/model/model*")
-foreach(file ${files})
-	file(COPY ${file} DESTINATION ${CMAKE_BINARY_DIR}/bin/model)
-	install(DIRECTORY ${file} DESTINATION ${CMAKE_CONFIG_DIR}/model)
-endforeach()
-
-# Move detection validation models
-file(GLOB files "lib/local/LandmarkDetector/model/detection_validation/*.txt")
-foreach(file ${files})
-	file(COPY ${file} DESTINATION ${CMAKE_BINARY_DIR}/bin/model/detection_validation)
-	install(FILES ${file} DESTINATION ${CMAKE_CONFIG_DIR}/model/detection_validation)
-endforeach()
-
-# Move patch experts
-file(GLOB files "lib/local/LandmarkDetector/model/patch_experts/*.txt")
-foreach(file ${files})
-	file(COPY ${file} DESTINATION ${CMAKE_BINARY_DIR}/bin/model/patch_experts)
-	install(FILES ${file} DESTINATION ${CMAKE_CONFIG_DIR}/model/patch_experts)
-endforeach()
-
-# Move CEN patch experts
-file(GLOB files "lib/local/LandmarkDetector/model/patch_experts/*.dat")
-foreach(file ${files})
-	file(COPY ${file} DESTINATION ${CMAKE_BINARY_DIR}/bin/model/patch_experts)
-	install(FILES ${file} DESTINATION ${CMAKE_CONFIG_DIR}/model/patch_experts)
-endforeach()
-
-# Move MTCNN face detector
-file(GLOB files "lib/local/LandmarkDetector/model/mtcnn_detector/*.txt")
-foreach(file ${files})
-	file(COPY ${file} DESTINATION ${CMAKE_BINARY_DIR}/bin/model/mtcnn_detector)
-	install(FILES ${file} DESTINATION ${CMAKE_CONFIG_DIR}/model/mtcnn_detector)
-endforeach()
-
-# Move MTCNN face detector
-file(GLOB files "lib/local/LandmarkDetector/model/mtcnn_detector/*.dat")
-foreach(file ${files})
-	file(COPY ${file} DESTINATION ${CMAKE_BINARY_DIR}/bin/model/mtcnn_detector)
-	install(FILES ${file} DESTINATION ${CMAKE_CONFIG_DIR}/model/mtcnn_detector)
-endforeach()
-
-# Move Point Distribution models
-file(GLOB files "lib/local/LandmarkDetector/model/pdms/*.txt")
-foreach(file ${files})
-	file(COPY ${file} DESTINATION ${CMAKE_BINARY_DIR}/bin/model/pdms)
-	install(FILES ${file} DESTINATION ${CMAKE_CONFIG_DIR}/model/pdms)
-endforeach()
-
-# Move OpenCV classifiers
-file(GLOB files "lib/3rdParty/OpenCV3.4/classifiers/*.xml")
-foreach(file ${files})
-	file(COPY ${file} DESTINATION ${CMAKE_BINARY_DIR}/bin/classifiers)
-	install(FILES ${file} DESTINATION ${CMAKE_CONFIG_DIR}/classifiers)
-endforeach()
-
-# Move AU prediction modules
-file(GLOB files "lib/local/FaceAnalyser/AU_predictors/*.txt")
-foreach(file ${files})
-	file(COPY ${file} DESTINATION ${CMAKE_BINARY_DIR}/bin/AU_predictors)
-	install(FILES ${file} DESTINATION ${CMAKE_CONFIG_DIR}/AU_predictors)
-endforeach()
-
-# Move AU prediction modules
-file(GLOB files "lib/local/FaceAnalyser/AU_predictors/svr*")
-foreach(file ${files})
-	file(COPY ${file} DESTINATION ${CMAKE_BINARY_DIR}/bin/AU_predictors)
-	install(DIRECTORY ${file} DESTINATION ${CMAKE_CONFIG_DIR}/AU_predictors)
-endforeach()
-
-# Move AU prediction modules
-file(GLOB files "lib/local/FaceAnalyser/AU_predictors/svm*")
-foreach(file ${files})
-	file(COPY ${file} DESTINATION ${CMAKE_BINARY_DIR}/bin/AU_predictors)
-	install(DIRECTORY ${file} DESTINATION ${CMAKE_CONFIG_DIR}/AU_predictors)
-endforeach()
-
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
     execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
     if (GCC_VERSION VERSION_LESS 8.0)
 		MESSAGE(FATAL_ERROR "Need a 8.0 or newer GCC compiler. Current GCC: ${GCC_VERSION}")
     else ()
-        set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse -msse2 -msse3")
+        set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse -msse2 -msse3 -fPIC")
     endif ()
 endif ()
 
@@ -171,12 +87,147 @@ add_subdirectory(lib/local/GazeAnalyser)
 # Utilities library
 add_subdirectory(lib/local/Utilities)
 
+
+# create symlink to models
+if(NOT EXISTS ${CMAKE_BINARY_DIR}/bin/model/)
+    FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bin/model/)
+endif()
+# create symlinkLandmarkDetector model
+file(GLOB files "lib/local/LandmarkDetector/model/*.txt")
+foreach(file_path ${files})
+    string(REPLACE "/" ";" folders ${file_path})
+    
+    list(POP_BACK folders file)
+    file(CREATE_LINK ${file_path} ${CMAKE_BINARY_DIR}/bin/model/${file} SYMBOLIC)
+    install(FILES ${file_path} DESTINATION ${CMAKE_CONFIG_DIR}/model)
+endforeach()
+
+# Move the hierarchical LandmarkDetector models
+file(GLOB files "lib/local/LandmarkDetector/model/model*")
+
+foreach(file_path ${files})
+    string(REPLACE "/" ";" folders ${file_path})
+    list(POP_BACK folders file)
+    file(CREATE_LINK ${file_path} ${CMAKE_BINARY_DIR}/bin/model/${file} SYMBOLIC)
+    install(DIRECTORY ${file} DESTINATION ${CMAKE_CONFIG_DIR}/model)
+endforeach()
+
+# Move detection validation models
+if(NOT EXISTS ${CMAKE_BINARY_DIR}/bin/model/detection_validation)
+    FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bin/model/detection_validation)
+endif()
+file(GLOB files "lib/local/LandmarkDetector/model/detection_validation/*.txt")
+foreach(file_path ${files})
+    string(REPLACE "/" ";" folders ${file_path})
+    list(POP_BACK folders file)
+    file(CREATE_LINK ${file_path} ${CMAKE_BINARY_DIR}/bin/model/detection_validation/${file} SYMBOLIC)
+    install(FILES ${file_path} DESTINATION ${CMAKE_CONFIG_DIR}/model/detection_validation)
+endforeach()
+
+# # Move patch experts
+if(NOT EXISTS ${CMAKE_BINARY_DIR}/bin/model/patch_experts)
+    FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bin/model/patch_experts)
+endif()
+file(GLOB files "lib/local/LandmarkDetector/model/patch_experts/*.txt")
+foreach(file_path ${files})
+    string(REPLACE "/" ";" folders ${file_path})
+    list(POP_BACK folders file)
+    file(CREATE_LINK ${file_path} ${CMAKE_BINARY_DIR}/bin/model/patch_experts/${file} SYMBOLIC)
+    install(FILES ${file_path} DESTINATION ${CMAKE_CONFIG_DIR}/model/patch_experts)
+endforeach()
+
+# Move CEN patch experts
+file(GLOB files "lib/local/LandmarkDetector/model/patch_experts/*.dat")
+foreach(file_path ${files})
+    string(REPLACE "/" ";" folders ${file_path})
+    list(POP_BACK folders file)
+    file(CREATE_LINK ${file_path} ${CMAKE_BINARY_DIR}/bin/model/patch_experts/${file} SYMBOLIC)
+    install(FILES ${file_path} DESTINATION ${CMAKE_CONFIG_DIR}/model/patch_experts)
+endforeach()
+
+# Move MTCNN face detector
+if(NOT EXISTS ${CMAKE_BINARY_DIR}/bin/model/mtcnn_detector)
+    FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bin/model/mtcnn_detector)
+endif()
+file(GLOB files "lib/local/LandmarkDetector/model/mtcnn_detector/*.txt")
+foreach(file_path ${files})
+    string(REPLACE "/" ";" folders ${file_path})
+    list(POP_BACK folders file)
+    file(CREATE_LINK ${file_path} ${CMAKE_BINARY_DIR}/bin/model/mtcnn_detector/${file} SYMBOLIC)
+    install(FILES ${file_path} DESTINATION ${CMAKE_CONFIG_DIR}/model/mtcnn_detector)
+endforeach()
+
+# Move MTCNN face detector
+file(GLOB files "lib/local/LandmarkDetector/model/mtcnn_detector/*.dat")
+foreach(file_path ${files})
+    string(REPLACE "/" ";" folders ${file_path})
+    list(POP_BACK folders file)
+    file(CREATE_LINK ${file_path} ${CMAKE_BINARY_DIR}/bin/model/mtcnn_detector/${file} SYMBOLIC)
+    install(FILES ${file_path} DESTINATION ${CMAKE_CONFIG_DIR}/model/mtcnn_detector)
+endforeach()
+
+# Move Point Distribution models
+if(NOT EXISTS ${CMAKE_BINARY_DIR}/bin/model/pdms)
+    FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bin/model/pdms)
+endif()
+file(GLOB files "lib/local/LandmarkDetector/model/pdms/*.txt")
+foreach(file_path ${files})
+    string(REPLACE "/" ";" folders ${file_path})
+    list(POP_BACK folders file)
+    file(CREATE_LINK ${file_path} ${CMAKE_BINARY_DIR}/bin/model/pdms/${file} SYMBOLIC)
+    install(FILES ${file_path} DESTINATION ${CMAKE_CONFIG_DIR}/model/pdms)
+endforeach()
+
+# Move OpenCV classifiers
+if(NOT EXISTS ${CMAKE_BINARY_DIR}/bin/model/classifiers)
+    FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bin/model/classifiers)
+endif()
+file(GLOB files "lib/3rdParty/OpenCV3.4/classifiers/*.xml")
+foreach(file_path ${files})
+    string(REPLACE "/" ";" folders ${file_path})
+    list(POP_BACK folders file)
+    file(CREATE_LINK ${file_path} ${CMAKE_BINARY_DIR}/bin/classifiers/${file} SYMBOLIC)
+    install(FILES ${file_path} DESTINATION ${CMAKE_CONFIG_DIR}/classifiers)
+endforeach()
+
+# Move AU prediction modules
+if(NOT EXISTS ${CMAKE_BINARY_DIR}/bin/model/AU_predictors)
+    FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bin/AU_predictors)
+endif()
+file(GLOB files "lib/local/FaceAnalyser/AU_predictors/*.txt")
+foreach(file_path ${files})
+    string(REPLACE "/" ";" folders ${file_path})
+    list(POP_BACK folders file)
+    file(CREATE_LINK ${file_path} ${CMAKE_BINARY_DIR}/bin/AU_predictors/${file} SYMBOLIC)
+    install(FILES ${file_path} DESTINATION ${CMAKE_CONFIG_DIR}/AU_predictors)
+endforeach()
+
+# Move AU prediction modules
+file(GLOB files "lib/local/FaceAnalyser/AU_predictors/svr*")
+foreach(file_path ${files})
+    string(REPLACE "/" ";" folders ${file_path})
+    list(POP_BACK folders file)
+    file(CREATE_LINK ${file_path} ${CMAKE_BINARY_DIR}/bin/AU_predictors/${file} SYMBOLIC)
+    install(DIRECTORY ${file} DESTINATION ${CMAKE_CONFIG_DIR}/AU_predictors)
+endforeach()
+
+# Move AU prediction modules
+file(GLOB files "lib/local/FaceAnalyser/AU_predictors/svm*")
+foreach(file_path ${files})
+    string(REPLACE "/" ";" folders ${file_path})
+    list(POP_BACK folders file)
+    file(CREATE_LINK ${file_path} ${CMAKE_BINARY_DIR}/bin/AU_predictors/${file} SYMBOLIC)
+    install(DIRECTORY ${file} DESTINATION ${CMAKE_CONFIG_DIR}/AU_predictors)
+endforeach()
+
 # test if this file is a top list file
 # thus we're building an OpenFace as a standalone
 # project; otherwise OpenFace is being built as a
 # part or larger tree;
-if(CMAKE_CURRENT_SOURCE_DIR STREQUAL "${CMAKE_SOURCE_DIR}")
 
+
+
+if(CMAKE_CURRENT_SOURCE_DIR STREQUAL "${CMAKE_SOURCE_DIR}")
     # for a standalone builds - allow installing package configs;
     message(STATUS "Standalone mode detected; Enabling configuration/targets export.")
 
@@ -238,10 +289,12 @@ if(CMAKE_CURRENT_SOURCE_DIR STREQUAL "${CMAKE_SOURCE_DIR}")
         "${CMAKE_CURRENT_BINARY_DIR}/OpenFace/OpenFaceConfig.cmake"
         "${CMAKE_CURRENT_BINARY_DIR}/${CONFIG_DEST_DIR}/OpenFaceConfigVersion.cmake"
         DESTINATION ${CONFIG_DEST_DIR})
+    
+    # executables
+    add_subdirectory(exe/FaceLandmarkImg)
+    add_subdirectory(exe/FaceLandmarkVid)
+    add_subdirectory(exe/FaceLandmarkVidMulti)
+    add_subdirectory(exe/FeatureExtraction)
+
 endif()
 
-# executables
-add_subdirectory(exe/FaceLandmarkImg)
-add_subdirectory(exe/FaceLandmarkVid)
-add_subdirectory(exe/FaceLandmarkVidMulti)
-add_subdirectory(exe/FeatureExtraction)

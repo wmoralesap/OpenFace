@@ -105,3 +105,14 @@ lib/local/CppInerop/Debug/
 
 # IDE-generated folders
 .idea
+
+# VScode workspace
+
+.vscode/
+
+#Python api build files
+python_api/build/
+python_api/dist/
+python_api/pybind11/
+python_api/pyopenface.egg-info/
+python_api/pyopenface/openface_models/
